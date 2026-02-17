@@ -1,0 +1,30 @@
+{
+  "name": "layer-manager-widget",
+  "version": "1.0.0",
+  "description": "Advanced layer management widget for ArcGIS Experience Builder with legend display options",
+  "main": "src/runtime/widget.tsx",
+  "scripts": {
+    "build": "Experience Builder build process"
+  },
+  "keywords": [
+    "arcgis",
+    "experience-builder",
+    "widget",
+    "layer-manager",
+    "legend",
+    "toc"
+  ],
+  "author": "Custom Widget",
+  "license": "MIT",
+  "peerDependencies": {
+    "jimu-core": ">=1.19.0",
+    "jimu-arcgis": ">=1.19.0",
+    "jimu-ui": ">=1.19.0",
+    "jimu-for-builder": ">=1.19.0",
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  },
+  "dependencies": {
+    "esri/widgets/Legend": "ArcGIS Maps SDK for JavaScript"
+  }
+}

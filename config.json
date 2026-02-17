@@ -1,0 +1,18 @@
+{
+  "showLegend": true,
+  "legendPosition": "below",
+  "layerNameSize": 14,
+  "legendSize": 12,
+  "backgroundColor": "#ffffff",
+  "textColor": "#323232",
+  "hoverColor": "#e8f4f8",
+  "borderColor": "#d9d9d9",
+  "showVisibilityToggle": true,
+  "showOpacitySlider": true,
+  "enableSearch": true,
+  "enableGrouping": true,
+  "compactMode": false,
+  "borderRadius": 4,
+  "spacing": 8,
+  "iconSize": 20
+}

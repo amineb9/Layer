@@ -1,0 +1,17 @@
+{
+  "name": "layer-manager",
+  "label": "Layer Manager",
+  "type": "widget",
+  "version": "1.0.0",
+  "exbVersion": "1.19.0",
+  "author": "Custom Widget",
+  "description": "Advanced layer management widget with legend display options",
+  "copyright": "",
+  "license": "",
+  "properties": {},
+  "translatedLocales": ["en", "fr"],
+  "defaultSize": {
+    "width": 350,
+    "height": 500
+  }
+}
