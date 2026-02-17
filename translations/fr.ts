@@ -1,4 +1,4 @@
-define({
+export default {
   _widgetLabel: 'Gestionnaire de Couches',
   _widgetDescription: 'Gestion avancée des couches avec options d\'affichage de légende',
   
@@ -51,4 +51,4 @@ define({
   collapseAll: 'Tout Réduire',
   resetView: 'Réinitialiser la Vue',
   layerCount: '{count} couche(s)'
-});
+};

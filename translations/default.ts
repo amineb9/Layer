@@ -1,4 +1,4 @@
-define({
+export default {
   _widgetLabel: 'Layer Manager',
   _widgetDescription: 'Advanced layer management with legend display options',
   
@@ -51,4 +51,4 @@ define({
   collapseAll: 'Collapse All',
   resetView: 'Reset View',
   layerCount: '{count} layer(s)'
-});
+};
