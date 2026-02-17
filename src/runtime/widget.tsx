@@ -1,23 +1,11 @@
 /** @jsx jsx */
-import {
-  React,
-  type AllWidgetProps,
-  jsx,
-  DataSourceComponent,
-  type IMState,
-  ReactRedux,
-  type DataSource,
-  DataSourceManager,
-  type FeatureLayerDataSource,
-  type SceneLayerDataSource
-} from 'jimu-core'
+import { React, type AllWidgetProps, jsx } from 'jimu-core'
 import { JimuMapViewComponent, type JimuMapView } from 'jimu-arcgis'
-import { Icon, Button, TextInput, Tooltip, Collapse, Slider } from 'jimu-ui'
+import { Icon, Button, TextInput, Tooltip, Slider } from 'jimu-ui'
 import type { IMLayerManagerConfig } from '../config'
 import defaultMessages from './translations/default'
-import { type LayerItem } from './layer-item'
 
-const { useState, useEffect, useCallback, useRef } = React
+const { useState, useEffect, useCallback } = React
 
 interface WidgetProps extends AllWidgetProps<IMLayerManagerConfig> {}
 
@@ -240,7 +228,7 @@ const Widget: React.FC<WidgetProps> = (props) => {
 
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           {config.enableLayerActions && (
-            <>
+            <React.Fragment>
               <Tooltip title={translate('tooltipZoom')} placement="top">
                 <Button
                   type="tertiary"
@@ -274,7 +262,7 @@ const Widget: React.FC<WidgetProps> = (props) => {
                   </Button>
                 </Tooltip>
               )}
-            </>
+            </React.Fragment>
           )}
         </div>
 
@@ -326,7 +314,7 @@ const Widget: React.FC<WidgetProps> = (props) => {
   return (
     <div css={containerStyle} className="widget-layer-manager">
       {useMapWidgetIds && useMapWidgetIds.length > 0 ? (
-        <>
+        <React.Fragment>
           <JimuMapViewComponent
             useMapWidgetId={useMapWidgetIds[0]}
             onActiveViewChange={onActiveViewChange}
@@ -362,7 +350,7 @@ const Widget: React.FC<WidgetProps> = (props) => {
               </div>
             )}
           </div>
-        </>
+        </React.Fragment>
       ) : (
         <div style={{ padding: '20px', textAlign: 'center' }}>
           {translate('noMapSelected')}

@@ -1,10 +1,5 @@
 /** @jsx jsx */
-import {
-  React,
-  jsx,
-  type ImmutableObject,
-  Immutable
-} from 'jimu-core'
+import { React, jsx } from 'jimu-core'
 import { type AllWidgetSettingProps } from 'jimu-for-builder'
 import {
   SettingSection,
@@ -114,7 +109,7 @@ const Setting: React.FC<SettingProps> = (props) => {
             </SettingRow>
 
             {config.showLegend && (
-              <>
+              <React.Fragment>
                 <SettingRow label={translate('legendPosition')}>
                   <Select
                     value={config.legendPosition}
@@ -136,7 +131,7 @@ const Setting: React.FC<SettingProps> = (props) => {
                     style={{ width: '100%' }}
                   />
                 </SettingRow>
-              </>
+              </React.Fragment>
             )}
           </SettingSection>
         </Tab>
