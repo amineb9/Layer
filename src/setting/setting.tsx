@@ -1,237 +1,294 @@
 /** @jsx jsx */
-import { React, jsx, css, Immutable } from 'jimu-core';
-import { AllWidgetSettingProps } from 'jimu-for-builder';
-import { 
-  Switch, 
-  Select, 
-  NumericInput, 
-  ColorPicker,
+import {
+  React,
+  jsx,
+  type ImmutableObject,
+  Immutable
+} from 'jimu-core'
+import { type AllWidgetSettingProps } from 'jimu-for-builder'
+import {
   SettingSection,
-  SettingRow
-} from 'jimu-ui/advanced/setting-components';
-import { MapWidgetSelector } from 'jimu-ui/advanced/setting-components';
+  SettingRow,
+  MapWidgetSelector
+} from 'jimu-ui/advanced/setting-components'
+import {
+  Switch,
+  NumericInput,
+  Select,
+  Label,
+  Tabs,
+  Tab
+} from 'jimu-ui'
+import { ThemeColorPicker } from 'jimu-ui/basic/color-picker'
+import type { IMLayerManagerConfig } from '../config'
+import defaultMessages from './translations/default'
 
-export default class Setting extends React.PureComponent<AllWidgetSettingProps<any>> {
-  
-  onMapWidgetSelected = (useMapWidgetIds: string[]) => {
-    this.props.onSettingChange({
-      id: this.props.id,
+const { useState } = React
+
+interface SettingProps extends AllWidgetSettingProps<IMLayerManagerConfig> {}
+
+const Setting: React.FC<SettingProps> = (props) => {
+  const { config, onSettingChange, useMapWidgetIds, intl } = props
+  const [activeTab, setActiveTab] = useState('general')
+
+  const translate = (id: string) => {
+    return intl?.formatMessage({ id, defaultMessage: defaultMessages[id] }) || defaultMessages[id]
+  }
+
+  const onMapWidgetSelected = (useMapWidgetIds: string[]) => {
+    onSettingChange({
+      id: props.id,
       useMapWidgetIds: useMapWidgetIds
-    });
-  };
+    })
+  }
 
-  onPropertyChange = (property: string, value: any) => {
-    this.props.onSettingChange({
-      id: this.props.id,
-      config: this.props.config.set(property, value)
-    });
-  };
+  const updateConfig = (key: string, value: any) => {
+    onSettingChange({
+      id: props.id,
+      config: config.set(key, value)
+    })
+  }
 
-  render() {
-    const { config } = this.props;
-    const translate = this.props.intl.formatMessage;
+  return (
+    <div className="widget-setting-layer-manager" style={{ height: '100%' }}>
+      <SettingSection>
+        <SettingRow>
+          <Label>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+              {translate('selectMap')}
+            </div>
+          </Label>
+        </SettingRow>
+        <SettingRow>
+          <MapWidgetSelector
+            onSelect={onMapWidgetSelected}
+            useMapWidgetIds={useMapWidgetIds}
+          />
+        </SettingRow>
+      </SettingSection>
 
-    const sectionStyle = css`
-      margin-bottom: 16px;
-    `;
+      <Tabs
+        type="underline"
+        value={activeTab}
+        onChange={setActiveTab}
+        fill
+      >
+        <Tab id="general" title={translate('generalSettings')}>
+          <SettingSection title={translate('appearanceSettings')}>
+            <SettingRow label={translate('backgroundColor')}>
+              <ThemeColorPicker
+                specificTheme={props.theme2}
+                value={config.backgroundColor}
+                onChange={(color) => updateConfig('backgroundColor', color)}
+              />
+            </SettingRow>
 
-    return (
-      <div css={css`padding: 16px; height: 100%; overflow-y: auto;`}>
-        
-        {/* Map Widget Selection */}
-        <SettingSection title="Map Widget">
-          <SettingRow>
-            <MapWidgetSelector
-              onSelect={this.onMapWidgetSelected}
-              useMapWidgetIds={this.props.useMapWidgetIds}
-            />
-          </SettingRow>
-        </SettingSection>
+            <SettingRow label={translate('textColor')}>
+              <ThemeColorPicker
+                specificTheme={props.theme2}
+                value={config.textColor}
+                onChange={(color) => updateConfig('textColor', color)}
+              />
+            </SettingRow>
 
-        {/* Display Settings */}
-        <SettingSection 
-          title={translate({ id: 'displaySettings' })}
-          css={sectionStyle}
-        >
-          <SettingRow 
-            label={translate({ id: 'showLegend' })}
-            title={translate({ id: 'showLegendDesc' })}
-          >
-            <Switch
-              checked={config.showLegend}
-              onChange={(e) => this.onPropertyChange('showLegend', e.target.checked)}
-            />
-          </SettingRow>
+            <SettingRow label={translate('fontSize')}>
+              <NumericInput
+                value={config.fontSize}
+                onChange={(value) => updateConfig('fontSize', value)}
+                min={10}
+                max={24}
+                step={1}
+                style={{ width: '100%' }}
+              />
+            </SettingRow>
+          </SettingSection>
+        </Tab>
 
-          {config.showLegend && (
-            <SettingRow label={translate({ id: 'legendPosition' })}>
+        <Tab id="legend" title={translate('legendSettings')}>
+          <SettingSection>
+            <SettingRow label={translate('showLegendOption')}>
+              <Switch
+                checked={config.showLegend}
+                onChange={(e) => updateConfig('showLegend', e.target.checked)}
+              />
+            </SettingRow>
+
+            {config.showLegend && (
+              <>
+                <SettingRow label={translate('legendPosition')}>
+                  <Select
+                    value={config.legendPosition}
+                    onChange={(e) => updateConfig('legendPosition', e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="inline">{translate('legendPositionInline')}</option>
+                    <option value="below">{translate('legendPositionBelow')}</option>
+                  </Select>
+                </SettingRow>
+
+                <SettingRow label={translate('legendSize')}>
+                  <NumericInput
+                    value={config.legendSize}
+                    onChange={(value) => updateConfig('legendSize', value)}
+                    min={12}
+                    max={32}
+                    step={2}
+                    style={{ width: '100%' }}
+                  />
+                </SettingRow>
+              </>
+            )}
+          </SettingSection>
+        </Tab>
+
+        <Tab id="display" title={translate('displayOptions')}>
+          <SettingSection>
+            <SettingRow label={translate('showLayerCount')}>
+              <Switch
+                checked={config.showLayerCount}
+                onChange={(e) => updateConfig('showLayerCount', e.target.checked)}
+              />
+            </SettingRow>
+
+            <SettingRow label={translate('enableSearch')}>
+              <Switch
+                checked={config.enableSearch}
+                onChange={(e) => updateConfig('enableSearch', e.target.checked)}
+              />
+            </SettingRow>
+
+            <SettingRow label={translate('enableGrouping')}>
+              <Switch
+                checked={config.enableGrouping}
+                onChange={(e) => updateConfig('enableGrouping', e.target.checked)}
+              />
+            </SettingRow>
+
+            <SettingRow label={translate('showVisibilityToggle')}>
+              <Switch
+                checked={config.showVisibilityToggle}
+                onChange={(e) => updateConfig('showVisibilityToggle', e.target.checked)}
+              />
+            </SettingRow>
+
+            <SettingRow label={translate('showOpacitySlider')}>
+              <Switch
+                checked={config.showOpacitySlider}
+                onChange={(e) => updateConfig('showOpacitySlider', e.target.checked)}
+              />
+            </SettingRow>
+          </SettingSection>
+        </Tab>
+
+        <Tab id="sorting" title={translate('sortingOptions')}>
+          <SettingSection>
+            <SettingRow label={translate('allowReorder')}>
+              <Switch
+                checked={config.allowReorder}
+                onChange={(e) => updateConfig('allowReorder', e.target.checked)}
+              />
+            </SettingRow>
+
+            <SettingRow label={translate('sortOrder')}>
               <Select
-                value={config.legendPosition}
-                onChange={(e) => this.onPropertyChange('legendPosition', e.target.value)}
+                value={config.sortOrder}
+                onChange={(e) => updateConfig('sortOrder', e.target.value)}
+                style={{ width: '100%' }}
               >
-                <option value="inline">
-                  {translate({ id: 'legendPositionInline' })}
-                </option>
-                <option value="below">
-                  {translate({ id: 'legendPositionBelow' })}
-                </option>
+                <option value="custom">{translate('sortCustom')}</option>
+                <option value="alphabetical">{translate('sortAlphabetical')}</option>
+                <option value="visibility">{translate('sortVisibility')}</option>
               </Select>
             </SettingRow>
-          )}
+          </SettingSection>
+        </Tab>
 
-          <SettingRow 
-            label={translate({ id: 'showVisibilityToggle' })}
-            title={translate({ id: 'showVisibilityToggleDesc' })}
-          >
-            <Switch
-              checked={config.showVisibilityToggle}
-              onChange={(e) => this.onPropertyChange('showVisibilityToggle', e.target.checked)}
-            />
-          </SettingRow>
+        <Tab id="style" title={translate('layerStyle')}>
+          <SettingSection>
+            <SettingRow label={translate('layerItemPadding')}>
+              <NumericInput
+                value={config.layerItemPadding}
+                onChange={(value) => updateConfig('layerItemPadding', value)}
+                min={0}
+                max={20}
+                step={1}
+                style={{ width: '100%' }}
+              />
+            </SettingRow>
 
-          <SettingRow 
-            label={translate({ id: 'showOpacitySlider' })}
-            title={translate({ id: 'showOpacitySliderDesc' })}
-          >
-            <Switch
-              checked={config.showOpacitySlider}
-              onChange={(e) => this.onPropertyChange('showOpacitySlider', e.target.checked)}
-            />
-          </SettingRow>
-        </SettingSection>
+            <SettingRow label={translate('layerItemHeight')}>
+              <NumericInput
+                value={config.layerItemHeight}
+                onChange={(value) => updateConfig('layerItemHeight', value)}
+                min={30}
+                max={80}
+                step={5}
+                style={{ width: '100%' }}
+              />
+            </SettingRow>
+          </SettingSection>
 
-        {/* Text Size Settings */}
-        <SettingSection 
-          title={translate({ id: 'legendSettings' })}
-          css={sectionStyle}
-        >
-          <SettingRow label={translate({ id: 'layerNameSize' })}>
-            <NumericInput
-              value={config.layerNameSize}
-              min={10}
-              max={24}
-              step={1}
-              onChange={(value) => this.onPropertyChange('layerNameSize', value)}
-              style={{ width: '100%' }}
-            />
-          </SettingRow>
+          <SettingSection title={translate('colorSettings')}>
+            <SettingRow label={translate('activeLayerColor')}>
+              <ThemeColorPicker
+                specificTheme={props.theme2}
+                value={config.activeLayerColor}
+                onChange={(color) => updateConfig('activeLayerColor', color)}
+              />
+            </SettingRow>
 
-          <SettingRow label={translate({ id: 'legendSize' })}>
-            <NumericInput
-              value={config.legendSize}
-              min={8}
-              max={20}
-              step={1}
-              onChange={(value) => this.onPropertyChange('legendSize', value)}
-              style={{ width: '100%' }}
-            />
-          </SettingRow>
+            <SettingRow label={translate('hoverColor')}>
+              <ThemeColorPicker
+                specificTheme={props.theme2}
+                value={config.hoverColor}
+                onChange={(color) => updateConfig('hoverColor', color)}
+              />
+            </SettingRow>
 
-          <SettingRow label={translate({ id: 'iconSize' })}>
-            <NumericInput
-              value={config.iconSize}
-              min={12}
-              max={32}
-              step={1}
-              onChange={(value) => this.onPropertyChange('iconSize', value)}
-              style={{ width: '100%' }}
-            />
-          </SettingRow>
-        </SettingSection>
+            <SettingRow label={translate('borderColor')}>
+              <ThemeColorPicker
+                specificTheme={props.theme2}
+                value={config.borderColor}
+                onChange={(color) => updateConfig('borderColor', color)}
+              />
+            </SettingRow>
+          </SettingSection>
+        </Tab>
 
-        {/* Style Settings */}
-        <SettingSection 
-          title={translate({ id: 'styleSettings' })}
-          css={sectionStyle}
-        >
-          <SettingRow label={translate({ id: 'backgroundColor' })}>
-            <ColorPicker
-              color={config.backgroundColor}
-              onChange={(color) => this.onPropertyChange('backgroundColor', color)}
-            />
-          </SettingRow>
+        <Tab id="advanced" title={translate('advancedOptions')}>
+          <SettingSection>
+            <SettingRow label={translate('enableLayerActions')}>
+              <Switch
+                checked={config.enableLayerActions}
+                onChange={(e) => updateConfig('enableLayerActions', e.target.checked)}
+              />
+            </SettingRow>
 
-          <SettingRow label={translate({ id: 'textColor' })}>
-            <ColorPicker
-              color={config.textColor}
-              onChange={(color) => this.onPropertyChange('textColor', color)}
-            />
-          </SettingRow>
+            <SettingRow label={translate('showLayerInfo')}>
+              <Switch
+                checked={config.showLayerInfo}
+                onChange={(e) => updateConfig('showLayerInfo', e.target.checked)}
+              />
+            </SettingRow>
 
-          <SettingRow label={translate({ id: 'hoverColor' })}>
-            <ColorPicker
-              color={config.hoverColor}
-              onChange={(color) => this.onPropertyChange('hoverColor', color)}
-            />
-          </SettingRow>
+            <SettingRow label={translate('collapsibleGroups')}>
+              <Switch
+                checked={config.collapsibleGroups}
+                onChange={(e) => updateConfig('collapsibleGroups', e.target.checked)}
+              />
+            </SettingRow>
 
-          <SettingRow label={translate({ id: 'borderColor' })}>
-            <ColorPicker
-              color={config.borderColor}
-              onChange={(color) => this.onPropertyChange('borderColor', color)}
-            />
-          </SettingRow>
-
-          <SettingRow label={translate({ id: 'borderRadius' })}>
-            <NumericInput
-              value={config.borderRadius}
-              min={0}
-              max={20}
-              step={1}
-              onChange={(value) => this.onPropertyChange('borderRadius', value)}
-              style={{ width: '100%' }}
-            />
-          </SettingRow>
-
-          <SettingRow label={translate({ id: 'spacing' })}>
-            <NumericInput
-              value={config.spacing}
-              min={0}
-              max={24}
-              step={2}
-              onChange={(value) => this.onPropertyChange('spacing', value)}
-              style={{ width: '100%' }}
-            />
-          </SettingRow>
-        </SettingSection>
-
-        {/* Advanced Settings */}
-        <SettingSection 
-          title={translate({ id: 'advancedSettings' })}
-          css={sectionStyle}
-        >
-          <SettingRow 
-            label={translate({ id: 'enableSearch' })}
-            title={translate({ id: 'enableSearchDesc' })}
-          >
-            <Switch
-              checked={config.enableSearch}
-              onChange={(e) => this.onPropertyChange('enableSearch', e.target.checked)}
-            />
-          </SettingRow>
-
-          <SettingRow 
-            label={translate({ id: 'enableGrouping' })}
-            title={translate({ id: 'enableGroupingDesc' })}
-          >
-            <Switch
-              checked={config.enableGrouping}
-              onChange={(e) => this.onPropertyChange('enableGrouping', e.target.checked)}
-            />
-          </SettingRow>
-
-          <SettingRow 
-            label={translate({ id: 'compactMode' })}
-            title={translate({ id: 'compactModeDesc' })}
-          >
-            <Switch
-              checked={config.compactMode}
-              onChange={(e) => this.onPropertyChange('compactMode', e.target.checked)}
-            />
-          </SettingRow>
-        </SettingSection>
-
-      </div>
-    );
-  }
+            <SettingRow label={translate('compactMode')}>
+              <Switch
+                checked={config.compactMode}
+                onChange={(e) => updateConfig('compactMode', e.target.checked)}
+              />
+            </SettingRow>
+          </SettingSection>
+        </Tab>
+      </Tabs>
+    </div>
+  )
 }
+
+export default Setting

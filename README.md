@@ -1,271 +1,208 @@
-# Widget Gestionnaire de Couches / Layer Manager Widget
+# Layer Manager Widget for ArcGIS Experience Builder 1.19
 
-Widget personnalisé avancé pour ArcGIS Experience Builder 1.19 permettant de gérer les couches de carte avec des options d'affichage de légende flexibles.
+## Description
 
-## 🎯 Fonctionnalités
+Widget avancé de gestion de couches pour ArcGIS Experience Builder permettant d'organiser, afficher et contrôler les couches de carte avec légendes personnalisables.
 
-### Gestion des Couches
-- ✅ Affichage de toutes les couches opérationnelles de la carte
-- ✅ Basculer la visibilité des couches (bouton œil)
-- ✅ Contrôle de l'opacité avec curseur
-- ✅ Expansion/réduction des détails de chaque couche
-- ✅ Boutons "Tout Développer" / "Tout Réduire"
+## Fonctionnalités principales
 
-### Options de Légende
-- ✅ Afficher/masquer la légende pour chaque couche
-- ✅ Position de la légende configurable :
-  - **En ligne** : à côté du nom de la couche
-  - **En dessous** : sous le nom de la couche
-- ✅ Taille des symboles de légende ajustable
-- ✅ Intégration native avec l'API ArcGIS
+### Gestion des couches
+- ✅ Affichage de toutes les couches de la carte
+- ✅ Basculer la visibilité des couches
+- ✅ Recherche de couches par nom
+- ✅ Réorganisation par glisser-déposer
+- ✅ Zoom sur l'étendue d'une couche
+- ✅ Contrôle de l'opacité par couche
 
-### Recherche et Filtrage
-- ✅ Barre de recherche pour filtrer les couches par nom
-- ✅ Compteur de couches affichées
-- ✅ Résultats de recherche en temps réel
+### Affichage de légende
+- ✅ Afficher/masquer les légendes
+- ✅ Position de légende : en ligne ou sous le nom
+- ✅ Taille de légende ajustable
+- ✅ Légende par couche
 
-### Personnalisation du Style
-- 🎨 Couleur de fond personnalisable
-- 🎨 Couleur du texte personnalisable
-- 🎨 Couleur de survol personnalisable
-- 🎨 Couleur de bordure personnalisable
-- 📏 Taille du nom de la couche ajustable (10-24px)
-- 📏 Taille de la légende ajustable (8-20px)
-- 📏 Taille des icônes ajustable (12-32px)
-- 📏 Rayon de bordure ajustable (0-20px)
-- 📏 Espacement entre couches ajustable (0-24px)
+### Personnalisation de l'apparence
+- ✅ Couleur de fond personnalisable
+- ✅ Couleur de texte personnalisable
+- ✅ Taille de police ajustable (10-24px)
+- ✅ Hauteur des éléments de couche ajustable
+- ✅ Espacement personnalisable
+- ✅ Couleurs pour couche active et survol
+- ✅ Mode compact
 
-### Mode Compact
-- ✅ Mode compact pour afficher plus de couches
-- ✅ Réduction automatique de l'espacement
+### Options avancées
+- ✅ Compteur de couches
+- ✅ Tri des couches (personnalisé, alphabétique, par visibilité)
+- ✅ Boutons d'action sur les couches
+- ✅ Bouton d'information de couche
+- ✅ Groupes repliables
 
-### Langues Supportées
-- 🇬🇧 Anglais
-- 🇫🇷 Français
+## Installation
 
----
+### Méthode 1 : Installation via ArcGIS Experience Builder Developer Edition
 
-## 📦 Installation
-
-### 1. Préparer le Widget
-
-1. **Télécharger** tous les fichiers du widget
-2. **Créer** un dossier nommé `layer-manager` dans votre projet Experience Builder :
+1. Téléchargez ou clonez ce widget
+2. Copiez le dossier `layer-manager-widget` dans le répertoire des widgets personnalisés :
    ```
-   <Experience Builder>/client/your-extensions/widgets/layer-manager/
+   <ExB_Installation>/client/your-extensions/widgets/
    ```
-
-### 2. Structure des Fichiers
-
-Assurez-vous d'avoir cette structure :
-
-```
-layer-manager/
-├── manifest.json
-├── config.json
-├── icon.svg
-├── translations/
-│   ├── default.ts
-│   └── fr.ts
-└── src/
-    ├── runtime/
-    │   └── widget.tsx
-    └── setting/
-        └── setting.tsx
-```
-
-### 3. Compiler et Utiliser
-
-1. **Redémarrer** Experience Builder :
+3. Compilez le widget :
    ```bash
+   cd <ExB_Installation>/client
+   npm install
    npm start
    ```
+4. Le widget apparaîtra dans la liste des widgets disponibles dans Experience Builder
 
-2. **Ajouter le widget** à votre application :
-   - Ouvrir Experience Builder
-   - Créer ou modifier une application
-   - Chercher "Layer Manager" ou "Gestionnaire de Couches" dans la liste des widgets
-   - Glisser-déposer le widget dans votre application
+### Méthode 2 : Installation directe dans ArcGIS Online
 
-3. **Configurer le widget** :
-   - Cliquer sur le widget
-   - Sélectionner le widget de carte à utiliser
-   - Configurer les options selon vos besoins
+1. Compilez d'abord le widget en mode production :
+   ```bash
+   cd <ExB_Installation>/client
+   npm run build
+   ```
+2. Créez un fichier ZIP contenant le dossier `dist` et les fichiers suivants :
+   - `manifest.json`
+   - `icon.svg`
+   - `config.json`
+3. Uploadez le fichier ZIP dans Experience Builder via l'interface web
 
----
+## Configuration
 
-## ⚙️ Configuration
+### Paramètres généraux
+- **Couleur de fond** : Couleur de fond du widget
+- **Couleur du texte** : Couleur du texte
+- **Taille de police** : Taille du texte (10-24px)
 
-### Paramètres d'Affichage
+### Paramètres de légende
+- **Afficher la légende** : Activer/désactiver l'affichage des légendes
+- **Position de la légende** :
+  - *En ligne* : Légende à côté du nom de la couche
+  - *Sous le nom* : Légende sous le nom de la couche
+- **Taille de la légende** : Taille des icônes de légende (12-32px)
 
-| Option | Description | Défaut |
-|--------|-------------|--------|
-| **Afficher la Légende** | Active/désactive l'affichage de la légende | Activé |
-| **Position de la Légende** | En ligne ou en dessous | En dessous |
-| **Bouton de Visibilité** | Affiche le bouton œil | Activé |
-| **Curseur d'Opacité** | Affiche le contrôle d'opacité | Activé |
+### Options d'affichage
+- **Afficher le nombre de couches** : Compteur dans l'en-tête
+- **Activer la recherche** : Barre de recherche
+- **Afficher le bouton de visibilité** : Icône œil pour chaque couche
+- **Afficher le curseur d'opacité** : Slider d'opacité pour la couche sélectionnée
 
-### Paramètres de Légende
+### Options de tri
+- **Autoriser la réorganisation manuelle** : Glisser-déposer
+- **Ordre de tri** :
+  - *Personnalisé* : Ordre défini par l'utilisateur
+  - *Alphabétique* : Tri A-Z
+  - *Par visibilité* : Couches visibles en premier
 
-| Option | Description | Plage | Défaut |
-|--------|-------------|-------|--------|
-| **Taille du Nom** | Taille du texte des couches | 10-24px | 14px |
-| **Taille de la Légende** | Taille des symboles | 8-20px | 12px |
-| **Taille des Icônes** | Taille des icônes de contrôle | 12-32px | 20px |
+### Style des couches
+- **Espacement des couches** : Padding interne (0-20px)
+- **Hauteur des couches** : Hauteur minimale (30-80px)
+- **Couleur de la couche active** : Couleur de surbrillance
+- **Couleur au survol** : Couleur de survol
+- **Couleur de bordure** : Couleur des séparateurs
 
-### Paramètres de Style
+### Options avancées
+- **Activer les actions sur les couches** : Boutons zoom, info, etc.
+- **Afficher le bouton d'information** : Bouton i pour les détails
+- **Groupes repliables** : Possibilité de replier les groupes
+- **Mode compact** : Réduction des espacements et tailles
 
-| Option | Description | Défaut |
-|--------|-------------|--------|
-| **Couleur de Fond** | Couleur d'arrière-plan | #ffffff |
-| **Couleur du Texte** | Couleur du texte | #323232 |
-| **Couleur de Survol** | Couleur au survol | #e8f4f8 |
-| **Couleur de Bordure** | Couleur des bordures | #d9d9d9 |
-| **Rayon de Bordure** | Arrondi des coins | 4px |
-| **Espacement** | Espace entre couches | 8px |
+## Utilisation
 
-### Paramètres Avancés
+1. Ajoutez le widget à votre application Experience Builder
+2. Dans les paramètres, sélectionnez le widget de carte à utiliser
+3. Personnalisez l'apparence selon vos besoins
+4. Les couches de la carte s'afficheront automatiquement
+5. Les utilisateurs peuvent :
+   - Cliquer sur l'œil pour basculer la visibilité
+   - Cliquer sur la loupe pour zoomer sur une couche
+   - Utiliser la recherche pour filtrer les couches
+   - Glisser-déposer pour réorganiser (si activé)
+   - Ajuster l'opacité avec le slider (si activé)
 
-| Option | Description | Défaut |
-|--------|-------------|--------|
-| **Activer la Recherche** | Ajoute une barre de recherche | Activé |
-| **Activer le Regroupement** | Groupe les couches par service | Activé |
-| **Mode Compact** | Réduit l'espacement | Désactivé |
+## Compatibilité
 
----
+- ArcGIS Experience Builder 1.19.0
+- ArcGIS Online
+- Portal for ArcGIS
+- Testé avec Map Widget et Scene Widget
 
-## 🎨 Exemples de Configuration
+## Support des langues
 
-### Configuration Minimale (Compact)
-```json
-{
-  "showLegend": false,
-  "layerNameSize": 12,
-  "compactMode": true,
-  "spacing": 4,
-  "showOpacitySlider": false
-}
+- Anglais (en)
+- Français (fr)
+
+Les traductions sont automatiquement détectées selon la langue de votre portail ArcGIS.
+
+## Structure du widget
+
+```
+layer-manager-widget/
+├── manifest.json              # Configuration du widget
+├── config.json                # Configuration par défaut
+├── icon.svg                   # Icône du widget
+├── src/
+│   ├── config.ts             # Types et configuration TypeScript
+│   ├── runtime/
+│   │   ├── widget.tsx        # Composant principal
+│   │   └── translations/
+│   │       ├── default.ts    # Traductions anglais
+│   │       └── fr.js         # Traductions français
+│   └── setting/
+│       ├── setting.tsx       # Interface de configuration
+│       └── translations/
+│           ├── default.ts    # Traductions settings anglais
+│           └── fr.js         # Traductions settings français
+└── dist/                     # Fichiers compilés (générés)
 ```
 
-### Configuration Détaillée (Maximum d'infos)
-```json
-{
-  "showLegend": true,
-  "legendPosition": "below",
-  "layerNameSize": 16,
-  "legendSize": 14,
-  "showOpacitySlider": true,
-  "iconSize": 24,
-  "spacing": 12
-}
+## Développement
+
+### Prérequis
+- Node.js 16+
+- ArcGIS Experience Builder Developer Edition 1.19.0
+
+### Commandes de développement
+```bash
+# Installation des dépendances
+npm install
+
+# Développement (mode watch)
+npm start
+
+# Build de production
+npm run build
+
+# Lint
+npm run lint
 ```
 
-### Configuration Personnalisée (Thème Sombre)
-```json
-{
-  "backgroundColor": "#2b2b2b",
-  "textColor": "#ffffff",
-  "hoverColor": "#3a3a3a",
-  "borderColor": "#444444"
-}
-```
+### Personnalisation
 
----
+Pour ajouter de nouvelles fonctionnalités :
 
-## 🔧 Utilisation
+1. Modifiez `src/config.ts` pour ajouter de nouveaux paramètres
+2. Mettez à jour `src/runtime/widget.tsx` pour la logique
+3. Ajoutez les options dans `src/setting/setting.tsx`
+4. Ajoutez les traductions dans les fichiers de langue
 
-### Actions Utilisateur
+## Licence
 
-1. **Rechercher une couche** : Tapez dans la barre de recherche
-2. **Basculer la visibilité** : Cliquez sur l'icône œil
-3. **Ajuster l'opacité** : Utilisez le curseur d'opacité
-4. **Développer/Réduire** : Cliquez sur la flèche à gauche
-5. **Tout développer** : Cliquez sur "Tout Développer"
-6. **Tout réduire** : Cliquez sur "Tout Réduire"
+Apache 2.0
 
-### Interactions avec la Carte
+## Support
 
-- Les modifications de visibilité sont appliquées immédiatement
-- Les modifications d'opacité sont appliquées en temps réel
-- Les couches ajoutées/supprimées de la carte sont automatiquement détectées
+Pour toute question ou problème :
+- Ouvrez une issue sur le dépôt
+- Consultez la documentation ArcGIS Experience Builder
+- Visitez la communauté Esri
 
----
+## Changelog
 
-## 📝 Notes Techniques
-
-### Compatibilité
-
-- **Experience Builder** : Version 1.19+
-- **ArcGIS Maps SDK for JavaScript** : Version utilisée par ExB 1.19
-- **Navigateurs** : Chrome, Firefox, Safari, Edge (versions récentes)
-
-### Types de Couches Supportés
-
-Le widget supporte tous les types de couches opérationnelles :
-- Feature Layers
-- Map Image Layers
-- Tile Layers
-- Group Layers
-- WMS Layers
-- Et plus...
-
-Les couches suivantes sont **exclues** automatiquement :
-- Fonds de carte (basemaps)
-- Couches avec `listMode: 'hide'`
-
-### Performance
-
-- Le widget utilise la mise en cache pour optimiser les performances
-- Les légendes sont créées à la demande (uniquement pour les couches visibles)
-- L'affichage est optimisé pour gérer 50+ couches
-
----
-
-## 🐛 Dépannage
-
-### Le widget n'apparaît pas
-1. Vérifiez que tous les fichiers sont dans le bon dossier
-2. Redémarrez Experience Builder
-3. Videz le cache du navigateur
-
-### Les légendes ne s'affichent pas
-1. Vérifiez que "Afficher la Légende" est activé
-2. Vérifiez que la couche est visible
-3. Certains types de couches peuvent ne pas supporter les légendes
-
-### Les traductions ne fonctionnent pas
-1. Vérifiez que les fichiers `default.ts` et `fr.ts` sont dans le dossier `translations/`
-2. Vérifiez la langue de votre profil ArcGIS Online
-
----
-
-## 🚀 Améliorations Futures
-
-Idées pour de futures versions :
-- Drag & drop pour réorganiser les couches
-- Export de la configuration
-- Templates de style prédéfinis
-- Support des sous-couches (sublayers)
-- Filtrage avancé par type de géométrie
-- Bouton de zoom sur l'étendue de la couche
-- Statistiques des entités par couche
-
----
-
-## 📄 Licence
-
-Ce widget est fourni tel quel, sans garantie. Libre d'utilisation et de modification.
-
----
-
-## 👤 Support
-
-Pour des questions ou des suggestions :
-- Ouvrir une issue sur le projet
-- Consulter la documentation Esri : https://developers.arcgis.com/experience-builder/
-
----
-
-**Version** : 1.0.0  
-**Dernière mise à jour** : Février 2025  
-**Compatible avec** : ArcGIS Experience Builder 1.19
+### Version 1.0.0 (Initial)
+- Gestion complète des couches
+- Affichage de légende configurable
+- Recherche et filtrage
+- Drag & drop pour réorganisation
+- Contrôles de visibilité et opacité
+- Interface entièrement personnalisable
+- Support français et anglais

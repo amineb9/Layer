@@ -1,413 +1,375 @@
 /** @jsx jsx */
-import { React, AllWidgetProps, jsx, css } from 'jimu-core';
-import { JimuMapView, JimuMapViewComponent } from 'jimu-arcgis';
-import { Icon, Button, TextInput, Collapse, Slider } from 'jimu-ui';
+import {
+  React,
+  type AllWidgetProps,
+  jsx,
+  DataSourceComponent,
+  type IMState,
+  ReactRedux,
+  type DataSource,
+  DataSourceManager,
+  type FeatureLayerDataSource,
+  type SceneLayerDataSource
+} from 'jimu-core'
+import { JimuMapViewComponent, type JimuMapView } from 'jimu-arcgis'
+import { Icon, Button, TextInput, Tooltip, Collapse, Slider } from 'jimu-ui'
+import type { IMLayerManagerConfig } from '../config'
+import defaultMessages from './translations/default'
+import { type LayerItem } from './layer-item'
 
-interface State {
-  jimuMapView: JimuMapView;
-  layers: any[];
-  searchText: string;
-  expandedLayers: Set<string>;
-}
+const { useState, useEffect, useCallback, useRef } = React
 
-export default class Widget extends React.PureComponent<AllWidgetProps<any>, State> {
-  private legendElements: Map<string, HTMLDivElement> = new Map();
+interface WidgetProps extends AllWidgetProps<IMLayerManagerConfig> {}
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      jimuMapView: null,
-      layers: [],
-      searchText: '',
-      expandedLayers: new Set()
-    };
-  }
+const Widget: React.FC<WidgetProps> = (props) => {
+  const { config, useMapWidgetIds, intl } = props
+  
+  const [jimuMapView, setJimuMapView] = useState<JimuMapView>(null)
+  const [layers, setLayers] = useState<any[]>([])
+  const [filteredLayers, setFilteredLayers] = useState<any[]>([])
+  const [searchText, setSearchText] = useState('')
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [selectedLayer, setSelectedLayer] = useState<string>(null)
+  const [draggedLayer, setDraggedLayer] = useState<any>(null)
+  
+  const translate = useCallback((id: string, values?: any) => {
+    return intl?.formatMessage({ id, defaultMessage: defaultMessages[id] }, values) || defaultMessages[id]
+  }, [intl])
 
-  componentDidUpdate(prevProps: AllWidgetProps<any>) {
-    if (prevProps.config !== this.props.config && this.state.jimuMapView) {
-      this.updateLegends();
+  // Gestion de la vue de carte
+  const onActiveViewChange = useCallback((jmv: JimuMapView) => {
+    if (jmv) {
+      setJimuMapView(jmv)
     }
-  }
+  }, [])
 
-  onActiveViewChange = (jimuMapView: JimuMapView) => {
-    if (jimuMapView) {
-      this.setState({ jimuMapView }, () => {
-        this.loadLayers();
-        this.watchLayerChanges();
-      });
-    }
-  };
+  // Chargement des couches depuis la carte
+  useEffect(() => {
+    if (!jimuMapView?.view) return
 
-  watchLayerChanges = () => {
-    const { jimuMapView } = this.state;
-    if (!jimuMapView?.view) return;
+    const loadLayers = async () => {
+      const view = jimuMapView.view
+      const map = view.map
+      
+      if (!map) return
 
-    jimuMapView.view.map.allLayers.on('change', () => {
-      this.loadLayers();
-    });
-  };
-
-  loadLayers = () => {
-    const { jimuMapView } = this.state;
-    if (!jimuMapView?.view) return;
-
-    const allLayers = jimuMapView.view.map.allLayers.toArray();
-    const operationalLayers = allLayers.filter(layer => 
-      layer.listMode !== 'hide' && 
-      layer.type !== 'base-tile' &&
-      layer.type !== 'vector-tile' &&
-      !layer.isBasemap
-    );
-
-    this.setState({ layers: operationalLayers }, () => {
-      this.updateLegends();
-    });
-  };
-
-  updateLegends = async () => {
-    const { layers } = this.state;
-    const { config } = this.props;
-
-    if (!config.showLegend) return;
-
-    for (const layer of layers) {
-      if (layer.visible && this.legendElements.has(layer.id)) {
-        await this.createLegend(layer, this.legendElements.get(layer.id));
-      }
-    }
-  };
-
-  createLegend = async (layer: any, container: HTMLDivElement) => {
-    if (!container || !this.state.jimuMapView?.view) return;
-
-    const Legend = (await import('esri/widgets/Legend')).default;
-    container.innerHTML = '';
-
-    try {
-      new Legend({
-        view: this.state.jimuMapView.view,
-        layerInfos: [{
-          layer: layer,
-          title: ''
-        }],
-        container: container,
-        style: {
-          type: 'card',
-          layout: this.props.config.legendPosition === 'inline' ? 'side-by-side' : 'stack'
+      const layerList: any[] = []
+      
+      // Parcourir toutes les couches
+      map.allLayers.forEach((layer: any) => {
+        if (layer.visible !== undefined) {
+          layerList.push({
+            id: layer.id,
+            title: layer.title || 'Unnamed Layer',
+            visible: layer.visible,
+            opacity: layer.opacity || 1,
+            layer: layer,
+            type: layer.type,
+            legendEnabled: layer.legendEnabled !== false
+          })
         }
-      });
-    } catch (error) {
-      console.warn(`Could not create legend for ${layer.title}:`, error);
+      })
+
+      setLayers(layerList)
+      setFilteredLayers(layerList)
     }
-  };
 
-  toggleLayerVisibility = (layer: any) => {
-    layer.visible = !layer.visible;
-    this.forceUpdate();
-  };
+    loadLayers()
 
-  updateLayerOpacity = (layer: any, opacity: number) => {
-    layer.opacity = opacity;
-    this.forceUpdate();
-  };
-
-  toggleLayerExpanded = (layerId: string) => {
-    const { expandedLayers } = this.state;
-    const newExpanded = new Set(expandedLayers);
+    // Écouter les changements de couches
+    const handle = jimuMapView.view.map.allLayers.on('change', loadLayers)
     
-    if (newExpanded.has(layerId)) {
-      newExpanded.delete(layerId);
+    return () => {
+      handle?.remove()
+    }
+  }, [jimuMapView])
+
+  // Filtrage des couches par recherche
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setFilteredLayers(layers)
     } else {
-      newExpanded.add(layerId);
+      const filtered = layers.filter(layer =>
+        layer.title.toLowerCase().includes(searchText.toLowerCase())
+      )
+      setFilteredLayers(filtered)
     }
-    
-    this.setState({ expandedLayers: newExpanded });
-  };
+  }, [searchText, layers])
 
-  expandAll = () => {
-    const allIds = this.state.layers.map(l => l.id);
-    this.setState({ expandedLayers: new Set(allIds) });
-  };
+  // Gestion de la visibilité d'une couche
+  const toggleLayerVisibility = useCallback((layerId: string) => {
+    const layer = layers.find(l => l.id === layerId)
+    if (layer?.layer) {
+      layer.layer.visible = !layer.layer.visible
+      setLayers([...layers])
+    }
+  }, [layers])
 
-  collapseAll = () => {
-    this.setState({ expandedLayers: new Set() });
-  };
+  // Gestion de l'opacité d'une couche
+  const changeLayerOpacity = useCallback((layerId: string, opacity: number) => {
+    const layer = layers.find(l => l.id === layerId)
+    if (layer?.layer) {
+      layer.layer.opacity = opacity
+      setLayers([...layers])
+    }
+  }, [layers])
 
-  getFilteredLayers = () => {
-    const { layers, searchText } = this.state;
-    if (!searchText) return layers;
-
-    return layers.filter(layer => 
-      layer.title.toLowerCase().includes(searchText.toLowerCase())
-    );
-  };
-
-  renderLayer = (layer: any) => {
-    const { config } = this.props;
-    const { expandedLayers } = this.state;
-    const isExpanded = expandedLayers.has(layer.id);
-    const translate = this.props.intl.formatMessage;
-
-    const layerStyle = css`
-      border: 1px solid ${config.borderColor};
-      border-radius: ${config.borderRadius}px;
-      margin-bottom: ${config.compactMode ? config.spacing / 2 : config.spacing}px;
-      background: ${config.backgroundColor};
-      overflow: hidden;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: ${config.hoverColor};
+  // Zoom sur une couche
+  const zoomToLayer = useCallback(async (layerId: string) => {
+    const layer = layers.find(l => l.id === layerId)
+    if (layer?.layer && jimuMapView?.view) {
+      try {
+        const extent = await layer.layer.queryExtent()
+        if (extent?.extent) {
+          await jimuMapView.view.goTo(extent.extent.expand(1.2))
+        }
+      } catch (error) {
+        console.error('Error zooming to layer:', error)
       }
-    `;
+    }
+  }, [layers, jimuMapView])
 
-    const headerStyle = css`
-      display: flex;
-      align-items: center;
-      padding: ${config.compactMode ? 6 : 10}px;
-      cursor: pointer;
-      gap: 8px;
-    `;
+  // Rendu d'un élément de légende
+  const renderLegend = useCallback((layer: any) => {
+    if (!config.showLegend || !layer.legendEnabled) return null
 
-    const titleStyle = css`
-      flex: 1;
-      font-size: ${config.layerNameSize}px;
-      color: ${config.textColor};
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    `;
-
-    const legendContainerStyle = css`
-      padding: ${config.legendPosition === 'inline' ? '0 10px' : '0 10px 10px 10px'};
-      
-      .esri-legend {
-        background: transparent !important;
-      }
-      
-      .esri-legend__layer {
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-      
-      .esri-legend__layer-caption {
-        display: none !important;
-      }
-      
-      .esri-legend__service {
-        padding: 0 !important;
-      }
-      
-      .esri-legend__layer-body {
-        padding: ${config.legendPosition === 'inline' ? '0' : '5px 0 0 0'} !important;
-      }
-      
-      .esri-legend__layer-cell {
-        font-size: ${config.legendSize}px !important;
-      }
-      
-      .esri-legend__symbol {
-        width: ${config.iconSize}px !important;
-        height: ${config.iconSize}px !important;
-      }
-    `;
-
-    const controlsStyle = css`
-      padding: 0 10px 10px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    `;
+    const legendStyle: React.CSSProperties = {
+      fontSize: `${config.legendSize}px`,
+      marginTop: config.legendPosition === 'below' ? '4px' : '0',
+      marginLeft: config.legendPosition === 'inline' ? '8px' : '0',
+      display: config.legendPosition === 'inline' ? 'inline-flex' : 'block',
+      alignItems: 'center'
+    }
 
     return (
-      <div key={layer.id} css={layerStyle}>
-        <div 
-          css={headerStyle}
-          onClick={() => this.toggleLayerExpanded(layer.id)}
-        >
-          <Icon
-            icon={isExpanded ? 'down' : 'right'}
-            size={12}
-            color={config.textColor}
-          />
-          
+      <div style={legendStyle} className="layer-legend">
+        <Icon icon="legend" size={config.legendSize} color={config.textColor} />
+      </div>
+    )
+  }, [config])
+
+  // Rendu d'une couche
+  const renderLayer = useCallback((layer: any, index: number) => {
+    const isSelected = selectedLayer === layer.id
+    const isCompact = config.compactMode
+
+    const layerStyle: React.CSSProperties = {
+      padding: `${config.layerItemPadding}px`,
+      minHeight: isCompact ? `${config.layerItemHeight * 0.7}px` : `${config.layerItemHeight}px`,
+      backgroundColor: isSelected ? config.activeLayerColor : 'transparent',
+      color: isSelected ? '#ffffff' : config.textColor,
+      borderBottom: `1px solid ${config.borderColor}`,
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      fontSize: `${config.fontSize}px`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: config.legendPosition === 'below' ? 'wrap' : 'nowrap'
+    }
+
+    const layerNameStyle: React.CSSProperties = {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      overflow: 'hidden',
+      width: config.legendPosition === 'below' ? '100%' : 'auto'
+    }
+
+    return (
+      <div
+        key={layer.id}
+        style={layerStyle}
+        className="layer-item"
+        onClick={() => setSelectedLayer(isSelected ? null : layer.id)}
+        onMouseEnter={(e) => {
+          if (!isSelected) {
+            e.currentTarget.style.backgroundColor = config.hoverColor
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isSelected) {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }
+        }}
+        draggable={config.allowReorder}
+        onDragStart={() => setDraggedLayer(layer)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => {
+          if (draggedLayer && draggedLayer.id !== layer.id) {
+            const newLayers = [...layers]
+            const dragIndex = newLayers.findIndex(l => l.id === draggedLayer.id)
+            const dropIndex = newLayers.findIndex(l => l.id === layer.id)
+            const [removed] = newLayers.splice(dragIndex, 1)
+            newLayers.splice(dropIndex, 0, removed)
+            setLayers(newLayers)
+          }
+          setDraggedLayer(null)
+        }}
+      >
+        <div style={layerNameStyle}>
           {config.showVisibilityToggle && (
-            <Button
-              icon={layer.visible ? 'view-visible' : 'view-hidden'}
-              type="tertiary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                this.toggleLayerVisibility(layer);
-              }}
-              title={translate({ id: layer.visible ? 'visible' : 'hidden' })}
-            />
+            <Tooltip title={translate('tooltipVisibility')} placement="top">
+              <Button
+                type="tertiary"
+                size={isCompact ? 'sm' : 'default'}
+                icon
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleLayerVisibility(layer.id)
+                }}
+              >
+                <Icon
+                  icon={layer.visible ? 'eye' : 'eye-slash'}
+                  size={isCompact ? 12 : 14}
+                  color={isSelected ? '#ffffff' : config.textColor}
+                />
+              </Button>
+            </Tooltip>
           )}
           
-          <div css={titleStyle} title={layer.title}>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {layer.title}
-          </div>
+          </span>
+          
+          {config.legendPosition === 'inline' && renderLegend(layer)}
         </div>
 
-        <Collapse isOpen={isExpanded}>
-          {config.showLegend && layer.visible && (
-            <div 
-              css={legendContainerStyle}
-              ref={(ref) => {
-                if (ref) {
-                  this.legendElements.set(layer.id, ref);
-                  this.createLegend(layer, ref);
-                }
-              }}
-            />
-          )}
+        {config.legendPosition === 'below' && renderLegend(layer)}
 
-          {config.showOpacitySlider && (
-            <div css={controlsStyle}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                fontSize: `${config.legendSize}px`,
-                color: config.textColor
-              }}>
-                <span style={{ minWidth: '60px' }}>
-                  {translate({ id: 'opacity' })}:
-                </span>
-                <Slider
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  value={layer.opacity}
-                  onChange={(value) => this.updateLayerOpacity(layer, value)}
-                  style={{ flex: 1 }}
-                />
-                <span style={{ minWidth: '40px', textAlign: 'right' }}>
-                  {Math.round(layer.opacity * 100)}%
-                </span>
-              </div>
-            </div>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          {config.enableLayerActions && (
+            <>
+              <Tooltip title={translate('tooltipZoom')} placement="top">
+                <Button
+                  type="tertiary"
+                  size={isCompact ? 'sm' : 'default'}
+                  icon
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    zoomToLayer(layer.id)
+                  }}
+                >
+                  <Icon
+                    icon="magnifier"
+                    size={isCompact ? 12 : 14}
+                    color={isSelected ? '#ffffff' : config.textColor}
+                  />
+                </Button>
+              </Tooltip>
+
+              {config.showLayerInfo && (
+                <Tooltip title={translate('tooltipInfo')} placement="top">
+                  <Button
+                    type="tertiary"
+                    size={isCompact ? 'sm' : 'default'}
+                    icon
+                  >
+                    <Icon
+                      icon="information"
+                      size={isCompact ? 12 : 14}
+                      color={isSelected ? '#ffffff' : config.textColor}
+                    />
+                  </Button>
+                </Tooltip>
+              )}
+            </>
           )}
-        </Collapse>
+        </div>
+
+        {config.showOpacitySlider && isSelected && (
+          <div style={{ width: '100%', marginTop: '8px' }}>
+            <Tooltip title={translate('tooltipOpacity')} placement="top">
+              <Slider
+                value={layer.opacity}
+                onChange={(value) => changeLayerOpacity(layer.id, value)}
+                min={0}
+                max={1}
+                step={0.1}
+                size="sm"
+              />
+            </Tooltip>
+          </div>
+        )}
       </div>
-    );
-  };
+    )
+  }, [config, selectedLayer, translate, toggleLayerVisibility, zoomToLayer, changeLayerOpacity, renderLegend, draggedLayer, layers])
 
-  render() {
-    const { config, useMapWidgetIds } = this.props;
-    const { searchText, layers } = this.state;
-    const translate = this.props.intl.formatMessage;
-    const filteredLayers = this.getFilteredLayers();
+  // Style du conteneur principal
+  const containerStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    backgroundColor: config.backgroundColor,
+    color: config.textColor,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  }
 
-    const containerStyle = css`
-      width: 100%;
-      height: 100%;
-      padding: 12px;
-      overflow-y: auto;
-      background: ${config.backgroundColor};
-      
-      &::-webkit-scrollbar {
-        width: 8px;
-      }
-      
-      &::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.05);
-        border-radius: 4px;
-      }
-      
-      &::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.2);
-        border-radius: 4px;
-        
-        &:hover {
-          background: rgba(0,0,0,0.3);
-        }
-      }
-    `;
+  const headerStyle: React.CSSProperties = {
+    padding: '12px',
+    borderBottom: `1px solid ${config.borderColor}`,
+    fontWeight: 'bold',
+    fontSize: `${config.fontSize + 2}px`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  }
 
-    const toolbarStyle = css`
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    `;
+  const layersContainerStyle: React.CSSProperties = {
+    flex: 1,
+    overflowY: 'auto',
+    overflowX: 'hidden'
+  }
 
-    const headerStyle = css`
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid ${config.borderColor};
-    `;
+  return (
+    <div css={containerStyle} className="widget-layer-manager">
+      {useMapWidgetIds && useMapWidgetIds.length > 0 ? (
+        <>
+          <JimuMapViewComponent
+            useMapWidgetId={useMapWidgetIds[0]}
+            onActiveViewChange={onActiveViewChange}
+          />
+          
+          <div style={headerStyle}>
+            <span>{translate('layers')}</span>
+            {config.showLayerCount && (
+              <span style={{ fontSize: `${config.fontSize}px`, fontWeight: 'normal', opacity: 0.7 }}>
+                {translate('layerCount', { count: filteredLayers.length })}
+              </span>
+            )}
+          </div>
 
-    const countStyle = css`
-      font-size: 12px;
-      color: ${config.textColor};
-      opacity: 0.7;
-    `;
-
-    return (
-      <div css={css`width: 100%; height: 100%; position: relative;`}>
-        <JimuMapViewComponent
-          useMapWidgetId={useMapWidgetIds?.[0]}
-          onActiveViewChange={this.onActiveViewChange}
-        />
-
-        <div css={containerStyle}>
           {config.enableSearch && (
-            <div css={toolbarStyle}>
+            <div style={{ padding: '8px' }}>
               <TextInput
-                type="text"
-                placeholder={translate({ id: 'searchPlaceholder' })}
+                placeholder={translate('search')}
                 value={searchText}
-                onChange={(e) => this.setState({ searchText: e.target.value })}
+                onChange={(e) => setSearchText(e.target.value)}
                 prefix={<Icon icon="search" size={14} />}
                 allowClear
-                style={{ flex: 1 }}
               />
             </div>
           )}
 
-          <div css={headerStyle}>
-            <span css={countStyle}>
-              {translate({ id: 'layerCount' }, { count: filteredLayers.length })}
-            </span>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              <Button
-                type="tertiary"
-                size="sm"
-                onClick={this.expandAll}
-                title={translate({ id: 'expandAll' })}
-              >
-                {translate({ id: 'expandAll' })}
-              </Button>
-              <Button
-                type="tertiary"
-                size="sm"
-                onClick={this.collapseAll}
-                title={translate({ id: 'collapseAll' })}
-              >
-                {translate({ id: 'collapseAll' })}
-              </Button>
-            </div>
+          <div style={layersContainerStyle}>
+            {filteredLayers.length > 0 ? (
+              filteredLayers.map((layer, index) => renderLayer(layer, index))
+            ) : (
+              <div style={{ padding: '20px', textAlign: 'center', opacity: 0.6 }}>
+                {searchText ? translate('searchNoResults') : translate('noLayers')}
+              </div>
+            )}
           </div>
-
-          {filteredLayers.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px 20px',
-              color: config.textColor,
-              opacity: 0.6
-            }}>
-              {searchText ? translate({ id: 'noResults' }) : translate({ id: 'noLayers' })}
-            </div>
-          ) : (
-            filteredLayers.map(layer => this.renderLayer(layer))
-          )}
+        </>
+      ) : (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          {translate('noMapSelected')}
         </div>
-      </div>
-    );
-  }
+      )}
+    </div>
+  )
 }
+
+export default Widget

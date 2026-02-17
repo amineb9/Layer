@@ -1,30 +1,33 @@
 {
   "name": "layer-manager-widget",
   "version": "1.0.0",
-  "description": "Advanced layer management widget for ArcGIS Experience Builder with legend display options",
-  "main": "src/runtime/widget.tsx",
+  "description": "Advanced layer manager widget for ArcGIS Experience Builder",
+  "main": "dist/runtime/widget.js",
   "scripts": {
-    "build": "Experience Builder build process"
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "lint": "eslint src --ext .ts,.tsx"
   },
   "keywords": [
     "arcgis",
     "experience-builder",
     "widget",
     "layer-manager",
-    "legend",
-    "toc"
+    "legend"
   ],
-  "author": "Custom Widget",
-  "license": "MIT",
+  "author": "Custom Widget Developer",
+  "license": "Apache-2.0",
   "peerDependencies": {
-    "jimu-core": ">=1.19.0",
-    "jimu-arcgis": ">=1.19.0",
-    "jimu-ui": ">=1.19.0",
-    "jimu-for-builder": ">=1.19.0",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
+    "jimu-core": "~1.19.0",
+    "jimu-ui": "~1.19.0",
+    "jimu-arcgis": "~1.19.0",
+    "jimu-for-builder": "~1.19.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
-  "dependencies": {
-    "esri/widgets/Legend": "ArcGIS Maps SDK for JavaScript"
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
   }
 }

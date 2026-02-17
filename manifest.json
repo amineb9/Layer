@@ -4,14 +4,22 @@
   "type": "widget",
   "version": "1.0.0",
   "exbVersion": "1.19.0",
-  "author": "Custom Widget",
-  "description": "Advanced layer management widget with legend display options",
+  "author": "Custom Widget Developer",
+  "description": "Advanced layer manager with legend display and customization options",
   "copyright": "",
-  "license": "",
-  "properties": {},
-  "translatedLocales": ["en", "fr"],
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "properties": {
+    "hasStyle": true,
+    "hasLocale": true,
+    "hasConfig": true,
+    "supportInlineEditing": false
+  },
   "defaultSize": {
     "width": 350,
-    "height": 500
-  }
+    "height": 600
+  },
+  "translatedLocales": [
+    "en",
+    "fr"
+  ]
 }
