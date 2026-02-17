@@ -1,8 +1,7 @@
-export default {
+define({
   _widgetLabel: 'Layer Manager',
   _widgetDescription: 'Advanced layer management with legend display options',
   
-  // Settings
   displaySettings: 'Display Settings',
   legendSettings: 'Legend Settings',
   styleSettings: 'Style Settings',
@@ -42,7 +41,6 @@ export default {
   spacing: 'Spacing',
   iconSize: 'Icon Size',
   
-  // Runtime
   searchPlaceholder: 'Search layers...',
   noLayers: 'No layers available',
   noResults: 'No layers found',
@@ -53,4 +51,4 @@ export default {
   collapseAll: 'Collapse All',
   resetView: 'Reset View',
   layerCount: '{count} layer(s)'
-}
+});

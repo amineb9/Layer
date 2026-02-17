@@ -1,8 +1,7 @@
-export default {
+define({
   _widgetLabel: 'Gestionnaire de Couches',
   _widgetDescription: 'Gestion avancée des couches avec options d\'affichage de légende',
   
-  // Paramètres
   displaySettings: 'Paramètres d\'Affichage',
   legendSettings: 'Paramètres de Légende',
   styleSettings: 'Paramètres de Style',
@@ -42,7 +41,6 @@ export default {
   spacing: 'Espacement',
   iconSize: 'Taille des Icônes',
   
-  // Runtime
   searchPlaceholder: 'Rechercher des couches...',
   noLayers: 'Aucune couche disponible',
   noResults: 'Aucune couche trouvée',
@@ -53,4 +51,4 @@ export default {
   collapseAll: 'Tout Réduire',
   resetView: 'Réinitialiser la Vue',
   layerCount: '{count} couche(s)'
-}
+});
